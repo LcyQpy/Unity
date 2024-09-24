@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 
+
 //要继承EditorWindow才能显示自己的框框
 public class FindMissingWindow : EditorWindow
     {
@@ -23,6 +24,7 @@ public class FindMissingWindow : EditorWindow
                 //gos拿到的是所有加载好的预设体
             foreach (var item in gos)
             {
+                Debug.Log(item);
                 GameObject go = item as GameObject;
                 if (go)
                 {
@@ -41,14 +43,13 @@ public class FindMissingWindow : EditorWindow
                             }
                             continue;
                         }
-                        SerializedObject so = new SerializedObject(cp);//生成一个组件对应的S俄日阿里则对Object对象 用于遍历这个组件的所有属性
-                        var iter = so.GetIterator();//拿到迭代器
-                        while (iter.NextVisible(true))//如果有下一个属性
+                        SerializedObject so = new SerializedObject(cp);
+                        var iter = so.GetIterator();
+                        while (iter.NextVisible(true))
                         {
                         //如果这个属性类型是引用类型的
                             if (iter.propertyType == SerializedPropertyType.ObjectReference)
                             {
-                            //引用对象是null 并且 引用ID不是0 说明丢失了引用
                                 if (iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0)
                                 {
                                     if (!refPaths.ContainsKey(cp)) refPaths.Add(cp, iter.propertyPath);
@@ -67,7 +68,7 @@ public class FindMissingWindow : EditorWindow
                     }
                 }
             }
-            EditorUtility.DisplayDialog("", "就绪", "OK");
+            //EditorUtility.DisplayDialog("", "就绪", "OK");
         }
          //以下只是将查找结果显示
         private Vector3 scroll = Vector3.zero;
