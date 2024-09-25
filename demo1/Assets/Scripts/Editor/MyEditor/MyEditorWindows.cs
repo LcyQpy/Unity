@@ -7,7 +7,9 @@ using System.IO;
 
 
 public class MyEditorWindows : EditorWindow
-{    bool showBtn = true;
+{    
+    bool showBtn = true;
+    private static Dictionary<UnityEngine.Object, List<UnityEngine.Object>> prefabs = new Dictionary<UnityEngine.Object, List<UnityEngine.Object>>();
     [MenuItem("MyWindows/001")]
     public static void ShowMyWindow()
     {
@@ -22,12 +24,15 @@ public class MyEditorWindows : EditorWindow
         GUILayout.Box("丢失物品列表");
         if(showBtn){
             if(GUILayout.Button("Star")){
-                test();
+                getMissingList();
             }
+            // if(GUILayout.Button("CCK")){
+            //     EditorUtility.DisplayDialog("Title","Contant DisplayDialog", "Button OK");
+            // }
         }
     }
 
-    private void test(){
+    private void getMissingList(){
         string[] paths = Directory.GetFiles("Assets","*.prefab",SearchOption.AllDirectories);
         if(paths.Length > 0){
             foreach(var _path in paths){
@@ -40,7 +45,12 @@ public class MyEditorWindows : EditorWindow
                         while(iter.NextVisible(true)){
                             if(iter.propertyType == SerializedPropertyType.ObjectReference){
                                 if(iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0){
-                                    Debug.Log(iter.name);
+                                    //Debug.Log(iter);
+                                    Debug.Log(co);
+                                    Debug.Log(tempObj);
+                                    EditorGUILayout.BeginHorizontal();
+                                    EditorGUILayout.ObjectField(tempObj, typeof(GameObject), true, GUILayout.Width(200));
+                                    EditorGUILayout.EndHorizontal();
                                 }
                             }
                         }

@@ -46,7 +46,7 @@ public class FindMissingWindow : EditorWindow
                         SerializedObject so = new SerializedObject(cp);
                         var iter = so.GetIterator();
                         while (iter.NextVisible(true))
-                        {
+                       {
                         //如果这个属性类型是引用类型的
                             if (iter.propertyType == SerializedPropertyType.ObjectReference)
                             {
