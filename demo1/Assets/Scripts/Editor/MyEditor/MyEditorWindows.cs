@@ -3,36 +3,59 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using Unity.VisualScripting;
+using UnityEditor.Overlays;
 
 
 
 public class MyEditorWindows : EditorWindow
 {    
     bool showBtn = true;
+    private Vector3 scroll = Vector3.zero;
     private static Dictionary<UnityEngine.Object, List<UnityEngine.Object>> prefabs = new Dictionary<UnityEngine.Object, List<UnityEngine.Object>>();
-    [MenuItem("MyWindows/001")]
+    [MenuItem("MyTool/FindMissingAssets")]
     public static void ShowMyWindow()
     {
+        
         MyEditorWindows window = EditorWindow.GetWindow<MyEditorWindows>("MyEditorWindow");
         window.Show();
-        window.minSize = new Vector2(500, 500);
+        window.minSize = new Vector2(200, 20);
     }
 
     void OnGUI()
     {
-        GUILayout.Label("FindAllMissAssert");
-        GUILayout.Box("丢失物品列表");
+        scroll =  EditorGUILayout.BeginScrollView(scroll);
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("GameObject");
+        GUILayout.Label("MissingAsset");
+        EditorGUILayout.EndHorizontal();
+
+        foreach(var cps in prefabs){
+            EditorGUILayout.BeginVertical();
+            foreach(var cp in cps.Value){
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.ObjectField(cps.Key, typeof(GameObject), true);
+                if(cp){
+                    EditorGUILayout.ObjectField(cp, cp.GetType(), true);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            EditorGUILayout.EndVertical();
+        }
+
+
+        EditorGUILayout.EndScrollView();
+
         if(showBtn){
-            if(GUILayout.Button("Star")){
+            if(GUILayout.Button("find missing asset")){
+                prefabs.Clear();
                 getMissingList();
             }
-            // if(GUILayout.Button("CCK")){
-            //     EditorUtility.DisplayDialog("Title","Contant DisplayDialog", "Button OK");
-            // }
         }
     }
 
-    private void getMissingList(){
+    public void getMissingList(){
         string[] paths = Directory.GetFiles("Assets","*.prefab",SearchOption.AllDirectories);
         if(paths.Length > 0){
             foreach(var _path in paths){
@@ -46,11 +69,9 @@ public class MyEditorWindows : EditorWindow
                             if(iter.propertyType == SerializedPropertyType.ObjectReference){
                                 if(iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0){
                                     //Debug.Log(iter);
-                                    Debug.Log(co);
-                                    Debug.Log(tempObj);
-                                    EditorGUILayout.BeginHorizontal();
-                                    EditorGUILayout.ObjectField(tempObj, typeof(GameObject), true, GUILayout.Width(200));
-                                    EditorGUILayout.EndHorizontal();
+                                    // Debug.Log(co);
+                                    // Debug.Log(tempObj);
+                                    prefabs.Add(tempObj, new List<Object>(){ co });
                                 }
                             }
                         }
