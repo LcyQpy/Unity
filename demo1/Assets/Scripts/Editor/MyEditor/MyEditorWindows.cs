@@ -11,9 +11,10 @@ using UnityEditor.Overlays;
 public class MyEditorWindows : EditorWindow
 {    
     bool showBtn = true;
+    private string assetPath;
     private Vector3 scroll = Vector3.zero;
     private static Dictionary<UnityEngine.Object, List<UnityEngine.Object>> prefabs = new Dictionary<UnityEngine.Object, List<UnityEngine.Object>>();
-    [MenuItem("MyTool/FindMissingAssets")]
+    [MenuItem("Assets/FindMissingAssets", false, 25)]
     public static void ShowMyWindow()
     {
         
@@ -25,12 +26,10 @@ public class MyEditorWindows : EditorWindow
     void OnGUI()
     {
         scroll =  EditorGUILayout.BeginScrollView(scroll);
-
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("GameObject");
         GUILayout.Label("MissingAsset");
         EditorGUILayout.EndHorizontal();
-
         foreach(var cps in prefabs){
             EditorGUILayout.BeginVertical();
             foreach(var cp in cps.Value){
@@ -43,41 +42,45 @@ public class MyEditorWindows : EditorWindow
             }
             EditorGUILayout.EndVertical();
         }
-
-
         EditorGUILayout.EndScrollView();
 
         if(showBtn){
             if(GUILayout.Button("find missing asset")){
-                prefabs.Clear();
-                getMissingList();
+                assetPath = "";
+                UpdatePathInfo();
+                GetMissingList();
             }
         }
     }
 
-    public void getMissingList(){
-        string[] paths = Directory.GetFiles("Assets","*.prefab",SearchOption.AllDirectories);
-        if(paths.Length > 0){
-            foreach(var _path in paths){
-                GameObject tempObj = AssetDatabase.LoadAssetAtPath<GameObject>(_path);
-                Component[] components = tempObj.GetComponentsInChildren<Component>();
-                if(components.Length > 0){
-                    foreach(var co in components){
-                        SerializedObject so = new SerializedObject(co);
-                        var iter = so.GetIterator();//拿到迭代器
-                        while(iter.NextVisible(true)){
-                            if(iter.propertyType == SerializedPropertyType.ObjectReference){
-                                if(iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0){
-                                    //Debug.Log(iter);
-                                    // Debug.Log(co);
-                                    // Debug.Log(tempObj);
-                                    prefabs.Add(tempObj, new List<Object>(){ co });
-                                }
+    private void GetMissingList(){
+        prefabs.Clear();
+        GameObject tempObj = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+        Component[] components = tempObj.GetComponentsInChildren<Component>();
+        if(components.Length > 0){
+            foreach(var co in components){
+                SerializedObject so = new SerializedObject(co);
+                var iter = so.GetIterator();
+                while(iter.NextVisible(true)){
+                    if(iter.propertyType == SerializedPropertyType.ObjectReference){
+                        if(iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0){
+                            if(prefabs.ContainsKey(tempObj)){
+                                prefabs[tempObj].Add(co);
+                            }else{
+                                prefabs.Add(tempObj, new List<Object>(){ co });
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private void UpdatePathInfo(){
+        if(Selection.objects.Length == 1){
+            assetPath = AssetDatabase.GetAssetPath(Selection.objects[0]);
+        }else{
+            EditorUtility.DisplayDialog("Tips", "please, Select a Prefab!", "exit");
         }
     }
 }
