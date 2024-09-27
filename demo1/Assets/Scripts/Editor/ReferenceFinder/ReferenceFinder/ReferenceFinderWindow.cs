@@ -37,7 +37,7 @@ public class ReferenceFinderWindow : EditorWindow
     {
         InitDataIfNeeded();
         OpenWindow();
-        ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();
+        ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>(); // 如果没有则会创建实例，返回ReferenceFinderWindow类型窗口
         window.UpdateSelectedAssets();
     }
     
@@ -236,7 +236,6 @@ public class ReferenceFinderWindow : EditorWindow
             if (child != null)
                 root.AddChild(child);
         }
-
         stack.Pop();
         return root;
     }

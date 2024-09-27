@@ -14,7 +14,7 @@ public class AssetTreeView : TreeView
     //图标宽度
     const float kIconWidth = 18f;
     //列表高度
-    const float kRowHeights = 20f;
+    const float kRowHeights = 18f;
     public AssetViewItem assetRoot;
 
     private GUIStyle stateGUIStyle = new GUIStyle { richText = true, alignment = TextAnchor.MiddleCenter };
@@ -85,7 +85,7 @@ public class AssetTreeView : TreeView
                 autoResize = false,
                 allowToggleVisibility = false,
                 canSort = false
-    },
+            },
             //状态
             new MultiColumnHeaderState.Column
             {
@@ -117,7 +117,7 @@ public class AssetTreeView : TreeView
         }
     }
 
-    //绘制列表中的每项内容
+    //绘制列表中的每项内容UpdateAssetTree
     void CellGUI(Rect cellRect,AssetViewItem item,MyColumns column, ref RowGUIArgs args)
     {
         CenterRectUsingSingleLineHeight(ref cellRect);

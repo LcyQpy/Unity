@@ -24,7 +24,6 @@ public class ReferenceFinderData
             int totalCount = allAssets.Length;
             for (int i = 0; i < allAssets.Length; i++)
             {
-                //每遍历100个Asset，更新一下进度条，同时对进度条的取消操作进行处理
                 if ((i % 100 == 0) && EditorUtility.DisplayCancelableProgressBar("Refresh", string.Format("Collecting {0} assets", i), (float)i / totalCount))
                 {
                     EditorUtility.ClearProgressBar();
