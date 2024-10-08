@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.Playables;
+using Codice.CM.Client.Gui;
 
 public class MyEditorWindows : EditorWindow
 {    
@@ -15,38 +16,37 @@ public class MyEditorWindows : EditorWindow
 
     //TreeView 不可序列化，因此应该通过树数据对其进行重建。
     MyAssetTreeView m_MyAssetTreeView;
-
+    public Vector2 win;
     private static List<Component> prefabs = new List<Component>(){};
 
+    public static UnityEngine.Object hasTar;
     void OnEnable ()
     {
         //检查是否已存在序列化视图状态（在程序集重新加载后
         // 仍然存在的状态）
         if (m_TreeViewState == null)
             m_TreeViewState = new TreeViewState ();
-
         m_MyAssetTreeView = new MyAssetTreeView(m_TreeViewState);
     }
-
-    void OnGUI ()
-    {
-        UpdateAssetsTreeData();
-        m_MyAssetTreeView.OnGUI(new Rect(0, 0, position.width, position.height));
-    }
-
     // 将名为 "My Window" 的菜单添加到 Window 菜单
     [MenuItem ("Assets/Find Missing Assest in Prefab", false, 25)]
-    static void ShowWindow ()
+    public static void ShowWindow () // 必须是静态方法
     {
+        // 只获取一次点击的信息判断
+        hasTar = Selection.objects[0];
         // 获取现有打开的窗口；如果没有，则新建一个窗口：
         var window = GetWindow<MyEditorWindows> ();
         window.titleContent = new GUIContent ("Missing Asset in Prefab");
-        window.Show ();
+        window.Show();
+    }
+    void OnGUI ()
+    {
+        UpdateAssetsTreeData();
+        m_MyAssetTreeView.OnGUI(new Rect(win.x, win.y, position.width, position.height));
     }
 
     public void UpdateAssetsTreeData(){
-        var CurrentPra = AssetDatabase.GetAssetPath(Selection.objects[0]); // 获得点击prefab
-        var StrPath = Selection.objects[0];
+        var CurrentPra = AssetDatabase.GetAssetPath(hasTar); // 获得点击prefab
         m_MyAssetTreeView.Root = new MyAssetTreeViewItem{id = 1, depth = -1, displayName = "root", path = ""}; // root节点
 
         FindMissAssets(CurrentPra);

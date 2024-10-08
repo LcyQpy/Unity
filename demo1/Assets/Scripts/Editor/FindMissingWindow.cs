@@ -7,6 +7,11 @@ using System.Linq;
 //要继承EditorWindow才能显示自己的框框
 public class FindMissingWindow : EditorWindow
     {
+        [MenuItem("Tools/ClearPlayerPrefs")]
+        public static void ClearPlayerPrefs(){
+            PlayerPrefs.DeleteAll();
+        }
+
         [MenuItem("Tools/FindMissingAsset")]
         public static void FindMissing()
         {

@@ -11,7 +11,7 @@ public class MyAssetTreeView : TreeView
     public List<TreeViewItem> AllItems;
     public MyAssetTreeView(TreeViewState treeViewState): base(treeViewState)
     {
-        
+       
     }
     protected override TreeViewItem BuildRoot ()
     {
