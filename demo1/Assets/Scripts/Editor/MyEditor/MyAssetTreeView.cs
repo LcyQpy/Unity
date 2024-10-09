@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using System;
 
 public class MyAssetTreeView : TreeView
 {
@@ -11,18 +12,17 @@ public class MyAssetTreeView : TreeView
     public List<TreeViewItem> AllItems;
     public MyAssetTreeView(TreeViewState treeViewState): base(treeViewState)
     {
-       
+    
     }
     protected override TreeViewItem BuildRoot ()
     {
         return Root;
     }
-    public MyAssetTreeView(TreeViewState state,MultiColumnHeader multicolumnHeader):base(state,multicolumnHeader)
+    private MyAssetTreeViewItem GetItem(int row) // 获取指定行
     {
-        columnIndexForTreeFoldouts = 0;
-        showAlternatingRowBackgrounds = true;
-        showBorder = false;
+        throw new NotImplementedException();
     }
+
 
     protected override void DoubleClickedItem(int id)
     {
@@ -34,15 +34,33 @@ public class MyAssetTreeView : TreeView
             EditorUtility.FocusProjectWindow();
             Selection.activeObject = assetObject;
             EditorGUIUtility.PingObject(assetObject);
-        }
+        } 
     }
 
+    protected override void RowGUI(RowGUIArgs args)
+    {
+        var item = (MyAssetTreeViewItem) args.item;
+        CellGUI(args.rowRect, item, ref args);
+        base.RowGUI(args);
+    }
+
+    public TreeViewItem _FindItem(int pid, MyAssetTreeViewItem root)
+    {
+        return FindItem(pid, root);
+    }
+    void CellGUI (Rect cellRect, MyAssetTreeViewItem item, ref RowGUIArgs args){
+        if(item.hasMissing){
+            GUI.color = Color.red;  
+            GUI.DrawTexture(cellRect, EditorGUIUtility.whiteTexture); // 使用白色纹理填充背景，但颜色由GUI.color决定  
+            GUI.color = Color.white; // 恢复默认颜色 
+        }
+    }
 }
 
-public class MyAssetTreeViewItem : TreeViewItem{
-   public string path = "";
-}
-
-
+ public class MyAssetTreeViewItem : TreeViewItem{
+    public string path = "";
+    public bool hasMissing = false;
+    public int parentID;
+    }
 
 
