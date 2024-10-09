@@ -52,7 +52,7 @@ public class MyEditorWindows : EditorWindow
 
     public void UpdateAssetsTreeData(){
         var CurrentPra = AssetDatabase.GetAssetPath(hasTar);
-        m_MyAssetTreeView.Root = new MyAssetTreeViewItem{id = 1, depth = -1, displayName = "root", path = ""}; // root节点
+        m_MyAssetTreeView.Root = new MyAssetTreeViewItem{id = 0, depth = -1, displayName = "root", path = ""}; // root节点
         DrawNodeTree(transforms); // 获取所有节点并组装成树
         //FindMissAssets(CurrentPra);
         GetMissingList(CurrentPra); // 获取丢失组件的节点
