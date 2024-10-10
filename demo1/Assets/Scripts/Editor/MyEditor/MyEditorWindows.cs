@@ -4,6 +4,8 @@ using UnityEditor.IMGUI.Controls;
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.PackageManager.UI;
+using NUnit.Framework;
 
 
 public class MyEditorWindows : EditorWindow
@@ -30,27 +32,32 @@ public class MyEditorWindows : EditorWindow
     }
     
     [MenuItem ("Assets/Find Missing Assest in Prefab", false, 25)]
-    public static void ShowWindow () 
-    {
-        // 全局只获取一次预制体
-        hasTar = Selection.objects[0];
-        transforms = hasTar.GetComponentsInChildren<Transform>();
+    private static void ShowWindow () 
+    { 
         // 获取现有打开的窗口；如果没有，则新建一个窗口：
         var window = GetWindow<MyEditorWindows> ();
         window.titleContent = new GUIContent ("Missing Asset in Prefab");
         window.Show();
+        // 全局只获取一次预制体
+        hasTar = Selection.objects[0];
+        transforms = hasTar.GetComponentsInChildren<Transform>();
     }
     private void OnGUI ()
     {
-        UpdateAssetsTreeData();
+        DrawWindow();
+    }
+
+    private void DrawWindow(){  // 绘制
+        UpdateAssetsTreeData(); 
         m_MyAssetTreeView.OnGUI(new Rect(win.x, win.y, position.width, position.height));
     }
+    
     /// <summary>
     /// 数据更新
     /// </summary>
     private void UpdateAssetsTreeData(){
         var CurrentPra = AssetDatabase.GetAssetPath(hasTar);
-        m_MyAssetTreeView.Root = new MyAssetTreeViewItem{id = 0, depth = -1, displayName = "root", path = ""}; // root节点
+        m_MyAssetTreeView.Root = new MyAssetTreeViewItem(0, -1, "root", false); // root节点
         DrawNodeTree(transforms); // 获取所有节点并组装成树
         GetMissingList(CurrentPra); // 获取丢失组件的节点
         m_MyAssetTreeView.Reload(); // 调用
@@ -72,7 +79,7 @@ public class MyEditorWindows : EditorWindow
                                 var trans = co.GetComponent<Transform>();
                                 var pid = Array.IndexOf(transforms, trans);
                                 var parentItem = m_MyAssetTreeView._FindItem(pid+1, m_MyAssetTreeView.Root);
-                                var misItem = new MyAssetTreeViewItem{id = ++currId, depth = parentItem.depth + 1, displayName = iter.name, hasMissing = true};
+                                var misItem = new MyAssetTreeViewItem(++currId, parentItem.depth + 1,iter.name, true, AssetDatabase.GetAssetPath(co.gameObject));
                                 parentItem.AddChild(misItem);
                             }
                         }
@@ -82,23 +89,27 @@ public class MyEditorWindows : EditorWindow
                     var trans = components[i - 1].GetComponent<Transform>();
                     var parentID = Array.IndexOf(transforms, trans);
                     var parentItem = m_MyAssetTreeView._FindItem(parentID + 1, m_MyAssetTreeView.Root);
-                    var MisScriptItem = new MyAssetTreeViewItem{id = ++currId, depth = parentItem.depth + 1, displayName = "MissingScript", hasMissing = true};
+                    var MisScriptItem = new MyAssetTreeViewItem(++currId, parentItem.depth + 1, "MissingScript",  true);
                     parentItem.AddChild(MisScriptItem);
                 }
                 i++;
             }
         }
     }
-
+    /// <summary>
+    /// 节点树生成
+    /// </summary>
+    /// <param name="trans"></param>
     private void DrawNodeTree(Transform[] trans){
         for(int i = 0; i < trans.Length; i++){
-            var item = new MyAssetTreeViewItem{id = i + 1, depth = GetDepth(trans[i], 1), displayName = trans[i].name, path = AssetDatabase.GetAssetPath(trans[i].gameObject), hasMissing = false};
+            var item = new MyAssetTreeViewItem(i + 1,GetDepth(trans[i], 1),trans[i].name, false);
             // 根据id获得父节点
             if(i == 0){
                 item.parent = m_MyAssetTreeView.Root;
             }else{
                 var _pid = Array.IndexOf(trans, trans[i].parent);
                 item.parent = m_MyAssetTreeView._FindItem(_pid + 1, m_MyAssetTreeView.Root);
+                item.SetItemPath(AssetDatabase.GetAssetPath(trans[i].parent.gameObject));
             }
             item.parent.AddChild(item);
             currId = i + 1;
