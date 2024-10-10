@@ -16,23 +16,19 @@ public class MyEditorWindows : EditorWindow
     //TreeView 不可序列化，因此应该通过树数据对其进行重建。
     MyAssetTreeView m_MyAssetTreeView;
 
-    public Vector2 win;
-    private static List<Transform> prefabs = new List<Transform>(){}; // 丢失组件所在节点
-
-    public static UnityEngine.Object hasTar; // 选中预制体
-    public static Transform[] transforms; // 所有节点
-    public int currId; // 当前最大ID
+    private Vector2 win;
+    private static UnityEngine.Object hasTar; // 选中预制体
+    private static Transform[] transforms; // 所有节点
+    private int currId; // 当前最大ID
 
 
     void OnEnable ()
     {
-        //检查是否已存在序列化视图状态（在程序集重新加载后
-        // 仍然存在的状态）
         if (m_TreeViewState == null)
             m_TreeViewState = new TreeViewState ();
         m_MyAssetTreeView = new MyAssetTreeView(m_TreeViewState);
     }
-    // 将名为 "My Window" 的菜单添加到 Window 菜单
+    
     [MenuItem ("Assets/Find Missing Assest in Prefab", false, 25)]
     public static void ShowWindow () 
     {
@@ -44,49 +40,57 @@ public class MyEditorWindows : EditorWindow
         window.titleContent = new GUIContent ("Missing Asset in Prefab");
         window.Show();
     }
-    void OnGUI ()
+    private void OnGUI ()
     {
         UpdateAssetsTreeData();
         m_MyAssetTreeView.OnGUI(new Rect(win.x, win.y, position.width, position.height));
     }
-
-    public void UpdateAssetsTreeData(){
+    /// <summary>
+    /// 数据更新
+    /// </summary>
+    private void UpdateAssetsTreeData(){
         var CurrentPra = AssetDatabase.GetAssetPath(hasTar);
         m_MyAssetTreeView.Root = new MyAssetTreeViewItem{id = 0, depth = -1, displayName = "root", path = ""}; // root节点
         DrawNodeTree(transforms); // 获取所有节点并组装成树
-        //FindMissAssets(CurrentPra);
         GetMissingList(CurrentPra); // 获取丢失组件的节点
-        m_MyAssetTreeView.Reload(); 
+        m_MyAssetTreeView.Reload(); // 调用
     }
 
 
     private void GetMissingList(string assetPath){
-        prefabs.Clear();
+        var i = 0;
         GameObject tempObj = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
         Component[] components = tempObj.GetComponentsInChildren<Component>();
         if(components.Length > 0){
             foreach(var co in components){
-                SerializedObject so = new SerializedObject(co);
-                var iter = so.GetIterator();
-                while(iter.NextVisible(true)){
-                    if(iter.propertyType == SerializedPropertyType.ObjectReference){
-                        if(iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0){
-                            prefabs.Add(co.GetComponent<Transform>());
-                            var trans = co.GetComponent<Transform>();
-                            var pid = Array.IndexOf(transforms, trans);
-                            var parentItem = m_MyAssetTreeView._FindItem(pid+1, m_MyAssetTreeView.Root);
-                            var misItem = new MyAssetTreeViewItem{id = ++currId, depth = parentItem.depth + 1, displayName = iter.name, hasMissing = true};
-                            parentItem.AddChild(misItem);
+                if(co){
+                    SerializedObject so = new SerializedObject(co);
+                    var iter = so.GetIterator();
+                    while(iter.NextVisible(true)){
+                        if(iter.propertyType == SerializedPropertyType.ObjectReference){
+                            if(iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0){
+                                var trans = co.GetComponent<Transform>();
+                                var pid = Array.IndexOf(transforms, trans);
+                                var parentItem = m_MyAssetTreeView._FindItem(pid+1, m_MyAssetTreeView.Root);
+                                var misItem = new MyAssetTreeViewItem{id = ++currId, depth = parentItem.depth + 1, displayName = iter.name, hasMissing = true};
+                                parentItem.AddChild(misItem);
+                            }
                         }
                     }
+                }else{  // 脚本组件
+                    // 寻找父节点
+                    var trans = components[i - 1].GetComponent<Transform>();
+                    var parentID = Array.IndexOf(transforms, trans);
+                    var parentItem = m_MyAssetTreeView._FindItem(parentID + 1, m_MyAssetTreeView.Root);
+                    var MisScriptItem = new MyAssetTreeViewItem{id = ++currId, depth = parentItem.depth + 1, displayName = "MissingScript", hasMissing = true};
+                    parentItem.AddChild(MisScriptItem);
                 }
+                i++;
             }
         }
     }
 
     private void DrawNodeTree(Transform[] trans){
-        // GameObject tempObj = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-        // transforms = tempObj.GetComponentsInChildren<Transform>(); // 所有节点列表
         for(int i = 0; i < trans.Length; i++){
             var item = new MyAssetTreeViewItem{id = i + 1, depth = GetDepth(trans[i], 1), displayName = trans[i].name, path = AssetDatabase.GetAssetPath(trans[i].gameObject), hasMissing = false};
             // 根据id获得父节点
@@ -101,6 +105,12 @@ public class MyEditorWindows : EditorWindow
         }
     }
 
+    /// <summary>
+    /// 计算节点深度
+    /// </summary>
+    /// <param name="transform">节点Transform组件</param>
+    /// <param name="depth">参数一般默认为1</param>
+    /// <returns></returns>
     private int GetDepth(Transform transform, int depth){
         if(transform.parent){
             depth = depth + 1;

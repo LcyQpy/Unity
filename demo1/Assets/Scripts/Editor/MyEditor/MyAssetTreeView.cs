@@ -9,21 +9,15 @@ using System;
 public class MyAssetTreeView : TreeView
 {
     public MyAssetTreeViewItem Root;
-    public List<TreeViewItem> AllItems;
     public MyAssetTreeView(TreeViewState treeViewState): base(treeViewState)
     {
-    
+        
     }
-    protected override TreeViewItem BuildRoot ()
+    protected override TreeViewItem BuildRoot () // 返回根节点
     {
         return Root;
     }
-    private MyAssetTreeViewItem GetItem(int row) // 获取指定行
-    {
-        throw new NotImplementedException();
-    }
-
-
+    
     protected override void DoubleClickedItem(int id)
     {
         var item = (MyAssetTreeViewItem)FindItem(id, rootItem);
@@ -57,10 +51,11 @@ public class MyAssetTreeView : TreeView
     }
 }
 
- public class MyAssetTreeViewItem : TreeViewItem{
+public class MyAssetTreeViewItem : TreeViewItem
+{
     public string path = "";
     public bool hasMissing = false;
     public int parentID;
-    }
+}
 
 
